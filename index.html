@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+
+</head>
+<body>
+    <canvas id="canvas" width="400" height="400" style="background-color:black "></canvas>
+
+    <script>
+        let width = 400;
+        let height = 400;
+
+        class Arm{
+            constructor(x_,y_,parent_,angle_,len_,w_){
+
+                this.parent = parent_;
+                this.start = {
+                    x: x_,
+                    y: y_
+                };
+                this.end = {
+                    x: 0,
+                    y: 0
+                };
+                this.len = len_;
+                this.rotationRate = 0;
+                this.angle = angle_; // in degrees
+                this.strokeWidth = w_;
+            }
+
+            rotate(x){
+                this.rotationRate = x;
+                if (this.parent)
+                    this.rotationRate += this.parent.rotationRate;
+                this.angle += this.rotationRate;
+                return this;
+            }
+
+            update(){
+                if (this.parent)
+                    this.start = {
+                        x: this.parent.end.x,
+                        y: this.parent.end.y
+                    };
+                this.end.x = Math.cos(degToRadians(this.angle)) * this.len + this.start.x;
+                this.end.y = Math.sin(degToRadians(this.angle)) * this.len + this.start.y;
+                return this;
+
+            }
+
+            show(){
+                ctx.beginPath();
+                ctx.lineWidth=this.strokeWidth;
+                ctx.moveTo(this.start.x,this.start.y);
+                ctx.lineTo(this.end.x,this.end.y);
+                ctx.stroke();
+        }
+        }
+
+        const degToRadians = x => (x * Math.PI / 180);
+        const arms = new Array(5).fill();
+        arms[0] = new Arm(200,200,null,0,50,7);
+        arms[0].update();
+        arms[1] = new Arm(100,200,arms[0],30,75,4);
+        arms[1].update();
+        arms[2] = new Arm(200,200,arms[1],0,40,2);
+        arms[2].update();
+        arms[3] = new Arm(200,200,arms[2],0,20,2);
+        arms[3].update();
+        arms[4] = new Arm(200,200,arms[3],0,10,2);
+
+
+        function clearBoard(){
+            ctx.fillStyle="#ccc";
+            ctx.fillRect(0,0,width,height); 
+        }
+
+
+        let framesToSkip = 1;
+        let counter = 0;
+        let c=document.getElementById("canvas");
+        let ctx=c.getContext("2d");
+        let animationLoop;
+        let sinAngle = 0;
+        loop();
+        function loop() {
+            if (false){
+                cancelAnimationFrame(animationLoop);
+                return false;
+            }
+            if (counter < framesToSkip) {
+                counter++;
+                animationLoop = requestAnimationFrame(loop);
+                return;
+            }
+
+            clearBoard();
+            sinAngle+=0.1;
+            arms[0].rotate(Math.sin(sinAngle)*10).update().show();    
+            arms[1].rotate(Math.sin(sinAngle)*5).update().show();    
+            arms[2].rotate(Math.sin(sinAngle)*8).update().show();
+            arms[3].rotate(Math.sin(sinAngle)*5).update().show();
+            arms[4].rotate(Math.sin(sinAngle)*2).update().show();
+
+            counter = 0;
+            animationLoop = requestAnimationFrame(loop);
+        }
+    </script>
+</body>
+</html>
